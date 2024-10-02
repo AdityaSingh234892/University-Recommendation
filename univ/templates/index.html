@@ -1,0 +1,158 @@
+{% extends 'basic.html' %}
+
+{% block title %}Foreign pathway{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">College Recommendation Form</h1>
+
+    <!-- First Form (College Recommendation) -->
+    <form method="post" action="{% url 'index' %}" id="studyForm">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="study2">
+        
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" class="form-control" name="name" id="name" placeholder="Enter your name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" class="form-control" name="email" id="email" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone No.:</label>
+            <input type="tel" class="form-control" name="phone" id="phone" placeholder="Enter your phone number" required>
+        </div>
+        <div class="form-group">
+            <label for="country">Select Country:</label>
+            <select class="form-control" name="country" id="country">
+                <option class="cou" value="US">United States</option>
+                <option class="cou" value="Canada">Canada</option>
+                <!-- Add more options for other countries as needed -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="board">Select Board:</label>
+            <select class="form-control" name="board" id="board">
+                <option value="CBSE">CBSE</option>
+                <option value="ICSE">ICSE</option>
+                <option value="State Board">State Board</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="degree">Select Degree:</label>
+            <select class="form-control" name="degree" id="degree" onchange="toggleCourseFields()">
+                <option value="UG">UG</option>
+                <option value="PG">PG</option>
+            </select>
+        </div>
+        <div id="pgFields" style="display: none;">
+            <div class="form-group">
+                <label for="course">Select Your Bachelors course:</label>
+                <select class="form-control" name="course" id="course">
+                    <option value="B.Tech">B.Tech</option>
+                    <option value="B.Sc">B.Sc</option>
+                    <option value="BCA">BCA</option>
+                    <option value="B.Com/CA">B.Com/CA</option>
+                    <option value="BA LLB">BA LLB</option>
+                    <option value="Bachelor of Design (B. Des)">Bachelor of Design (B. Des)</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="courseScore">Percentage/CGPA:</label>
+                <input type="number" class="form-control" name="courseScore" id="courseScore" step="0.1" placeholder="Enter your bachelors percentage/CGPA">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="score12">12th Percentage:</label>
+            <input type="number" class="form-control" name="score12" id="score12" step="0.1" min="0" max="100" placeholder="Enter your 12th percentage" required>
+        </div>
+        <div class="form-group">
+            <label for="score10">10th Percentage:</label>
+            <input type="number" class="form-control" name="score10" id="score10" step="0.1" min="0" max="100" placeholder="Enter your 10th percentage" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submit-btn">Submit</button>
+    </form>
+
+    <h2 class="pb-3"><br><strong>Choose Your Country for Studies</strong></br></h2>
+
+    <!-- Second Form (Choose Your Country) -->
+    <form method="post" action="{% url 'index' %}" id="studyFormAlternative">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="study1">
+        <div class="form-group">
+            <label for="country-alt">Select Country:</label>
+            <select class="form-control" name="country" id="country-alt">
+                <option class="cou" value="US">United States</option>
+                <option class="cou" value="Canada">Canada</option>
+                <!-- Add more options for other countries as needed -->
+            </select>
+        </div>
+        <button type="submit" class="btn btn-secondary mb-4" id="confirm-btn" disabled>Confirm</button>
+    </form>
+{% endblock %}
+
+{% block js %}
+<script>
+    // Function to toggle PG fields
+    function toggleCourseFields() {
+        var degree = document.getElementById("degree").value;
+        var pgFields = document.getElementById("pgFields");
+        if (degree === "PG") {
+            pgFields.style.display = "block";
+        } else {
+            pgFields.style.display = "none";
+        }
+    }
+
+    // Handle the first form submission via AJAX
+    document.getElementById('studyForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var submitBtn = document.getElementById('submit-btn');
+        var confirmBtn = document.getElementById('confirm-btn');
+        var form = document.getElementById('studyForm');
+        var formData = new FormData(form);
+
+        // Disable the Submit button to prevent multiple submissions
+        submitBtn.disabled = true;
+
+        fetch('{% url 'index' %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => {
+            // Check if the response is OK
+            if (!response.ok) {
+                throw new Error('Form submission failed');
+            }
+            // Parse the JSON response
+            return response.json();
+        })
+        .then(data => {
+            // Handle success
+            if (data.status === 'success') {
+                console.log(data.message);
+
+                // Enable the Confirm button
+                confirmBtn.disabled = false;
+                confirmBtn.classList.remove('btn-secondary');
+                confirmBtn.classList.add('btn-primary');
+
+                // Optionally, show a success message
+                alert('Select Country & Click confirm!');
+            } else {
+                throw new Error(data.message || 'Unknown error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('There was an error submitting the form. Please try again.');
+            // Re-enable the Submit button in case of an error
+            submitBtn.disabled = false;
+        });
+    });
+</script>
+{% endblock %}
