@@ -12,7 +12,7 @@ import os
 from django.core.wsgi import get_wsgi_application
 import sys
 
-
+sys.path.append('C:/Users/ss532/Downloads/Recommeder/University-Recommmendation-study-abroad-main')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'universityrec.settings')
 
 application = get_wsgi_application()
